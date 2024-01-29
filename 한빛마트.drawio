@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2024-01-29T03:43:20.653Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0" etag="koD6vletL1mPkOj87XpB" version="23.0.2" type="github" pages="2">
+<mxfile host="app.diagrams.net" modified="2024-01-29T08:34:47.884Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0" etag="s2GLmhJwGo1RMyI4a1JY" version="23.0.2" type="github" pages="2">
   <diagram name="ERD" id="WUFWxHUxCh2_jyDlP460">
-    <mxGraphModel dx="2402" dy="1775" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1867" dy="2165" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -329,7 +329,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="au6wGFkA9s4EJp_yZIBt" name="릴레이션">
-    <mxGraphModel dx="2162" dy="1229" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1440" dy="1219" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
