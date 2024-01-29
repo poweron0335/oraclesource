@@ -783,3 +783,16 @@ WHERE
 		WHERE
 			D.LOCATION_ID = 1700));
 			
+
+-- full scan
+SELECT * FROM EMPLOYEES e WHERE FIRST_NAME = 'Jack';
+
+-- 테이블 생성 - 구조, 데이터 복사
+CREATE TABLE idx_employees AS SELECT DISTINCT first_name, last_name, hire_date FROM EMPLOYEES e;
+
+-- index 생성
+CREATE INDEX idx_name ON idx_employees(first_name);
+
+-- index 사용해서 조회 => range scan (범위 조회가 됨)
+SELECT * FROM IDX_EMPLOYEES WHERE FIRST_NAME = 'Jack';
+
