@@ -1608,3 +1608,311 @@ INCREMENT BY 3 MAXVALUE 99 CYCLE;
 -- 마지막으로 생성된 시퀀스 확인
 SELECT dept_seq.currval FROM dual;
 
+
+-- 6일차
+
+
+-- 제약조건
+-- 테이블의 특정 열에 지정
+-- 1) NOT NULL : 열에 NULL 을 허용하지 않음
+-- 2) UNIQUE : 지정한 열이 유일한 값을 가져야 함(NULL 은 중복 시 따지지 않음)
+-- 3) PRIMARY KEY : 지정한 열이 유일한 값이면서 NULL 을 허용하지 않음(테이블당 하나만 지정)
+-- 4) FOREIGN KY : 다른 테이블의 열을 참조하여 존재한는 값만 입력
+-- 5) CHECK : 설정한 조건식을 만족하는 데이터만 입력
+
+-- 열이름(컬럼명) : USERNAME => USER_NAME(snakecase)
+CREATE TABLE TBL_NOTNULL(
+	LOGIN_ID VARCHAR(20) NOT NULL, 
+	LOGIN_PWD VARCHAR(20) NOT NULL, 
+	TEL VARCHAR(20) 
+);
+
+--  NULL을 ("SCOTT"."TBL_NOTNULL"."LOGIN_PWD") 안에 삽입할 수 없습니다
+INSERT INTO TBL_NOTNULL
+VALUES ('TESTID1', NULL, '010-1234-5678');
+INSERT INTO TBL_NOTNULL
+VALUES ('TESTID1', 'TESTID1', NULL);
+
+SELECT * FROM  TbL_NOTNULL;
+
+-- 제약조건 확인
+SELECT OWNER, CONSTRAINT_NAME, CONSTRAINT_TYPE, table_NAME
+FROM USER_CONSTRAINTS;
+
+CREATE TABLE TBL_NOTNULL2(
+	LOGIN_ID VARCHAR(20) CONSTRAINT TBLNN2_LOGIN_NN NOT NULL, 
+	LOGIN_PWD VARCHAR(20) CONSTRAINT TBLNN2_LOGINPWD_NN NOT NULL, 
+	TEL VARCHAR(20) 
+);
+
+-- 생성한 테이블에 제약 조건 추가
+ALTER TABLE tbl_notnull MODIFY(tel NOT NULL);
+
+-- alter 문에 이름도 붙일 수 있음
+ALTER TABLE tbl_notnull2 MODIFY(tel CONSTRAINT TBLNN2_TEL_NN NOT NULL);
+
+
+UPDATE
+	TBL_NOTNULL
+SET
+	tel = '010-1234-5678'
+WHERE
+	login_ID = 'TESTID1'
+	
+-- 생성한 제약 조건 이름 변경
+	ALTER TABLE tbl_notnull2 RENAME CONSTRAINT TBLNN2_TEL_NN TO TBLNN2_TEL;
+
+-- 제약 조건 삭제
+ALTER TABLE TBL_NOTNULL2 DROP CONSTRAINT TBLNN2_TEL;
+
+-- UNIQUE : 중복되지 않은 값
+
+SELECT * FROM TBL_UNIQUE;
+
+CREATE TABLE TBL_UNIQUE(
+	LOGIN_ID VARCHAR(20) UNIQUE, 
+	LOGIN_PWD VARCHAR(20) UNIQUE, 
+	TEL VARCHAR(20) 
+);
+
+-- 데이터 무결성 : 데이터 정확성, 일관성을 보장해야 함
+
+-- 무결성 제약 조건(SCOTT.SYS_C008360)에 위배됩니다 / UNIQUE 제약 조건에 위배됨
+INSERT INTO TBL_UNIQUE
+VALUES ('TESTID1', 'TESTID1', '010-1234-5678');
+
+CREATE TABLE TBL_UNIQUE2(
+	LOGIN_ID VARCHAR(20) CONSTRAINTS TBL_UNQ2_LOGIN_ID UNIQUE, 
+	LOGIN_PWD VARCHAR(20) CONSTRAINTS TBL_UNQ2_LOGPWD_NN NOT NULL, 
+	TEL VARCHAR(20) 
+);
+
+-- 제약조건 확인
+SELECT OWNER, CONSTRAINT_NAME, CONSTRAINT_TYPE, table_NAME
+FROM USER_CONSTRAINTS;
+
+SELECT * FROM TBL_UNIQUE2;
+
+ALTER TABLE tbl_unique2 MODIFY(TEL UNIQUE);
+ALTER TABLE tbl_unique modify(tel CONSTRAINTS TBL_UNQ_TEL_UNQ unique);
+
+alter TABLE tbl_unique DROP CONSTRAINTS TBL_UNQ_TEL_UNQ;
+
+-- 3) PRIMARY KEY (PK) : 기본키
+--    인덱스 설정 자동으로 만들어짐
+--    NOT NULL + UNIQUE => 회원 아이디, 이메일, 상품코드, 글번호 etc
+
+CREATE TABLE TBL_PRIMARY(
+	LOGIN_ID VARCHAR(20) PRIMARY KEY, 
+	LOGIN_PWD VARCHAR(20) NOT NULL, 
+	TEL VARCHAR(20) 
+);
+
+INSERT INTO TBL_PRIMARY(LOGIN_ID, LOGIN_PWD, TEL)
+VALUES('TESTID1', 'TESTPWD1', '010-1234-5678');
+
+SELECT * FROM TBL_PRIMARY;
+
+-- 4)FOREIGN KEY(외래키) : 특정 테이블의 기본키로 지정한 열을 다른 테이블의 특정 열에서 참조
+-- 부모키 / 자식키
+
+CREATE TABLE dept_FK(
+	deptno NUMBER(2) CONSTRAINT deptFK_deptno_pk PRIMARY KEY,
+	dname varchar(20),
+	loc varchar(20)
+);
+
+CREATE TABLE emp_fk(
+	EMPNO NUMBER(4) CONSTRAINT empfk_empno_pk PRIMARY KEY,
+	ENAME VARCHAR2(10),
+	JOB VARCHAR2(9),
+	MGR NUMBER(4),
+	HIREDATE DATE,
+	SAL NUMBER(7, 2),
+	COMM NUMBER(7, 2),
+	DEPTNO NUMBER(2) CONSTRAINT empfk_deptno_fk REFERENCES dept_fk(deptno)
+);
+
+DROP TABLE emp_fk;
+
+-- 부모(참조 대상 테이블) / 자식(참조하는 테이블)
+-- 무결성 제약조건(SCOTT.EMPFK_DEPTNO_FK)이 위배되었습니다- 부모 키가 없습니다 (참조 대상 테이블에 데이터 INSERT)
+INSERT INTO emp_fk VALUES(1000, 'HONG', 'CLERK', 7788, sysdate, 1200, NULL, 50);
+
+INSERT INTO dept_fk VALUES(50, 'DATABASE', 'SEOUL');
+
+-- 자식 레코드가 발견되었습니다(참조하는 테이블의 자식 DELETE)
+DELETE FROM dept_FK WHERE deptno = 50;
+
+-- FOREIGN KEY 
+-- 1) ON DELETE CASCADE : 부모가 삭제되면 자식도 같이 삭제
+-- 2) ON DELETE SET NULL :부모가 삭제되면 자식이 참조하는 부모의 값을 NULL로 변경
+
+CREATE TABLE emp_fk2(
+	EMPNO NUMBER(4) CONSTRAINT empfk2_empno_pk PRIMARY KEY,
+	ENAME VARCHAR2(10),
+	JOB VARCHAR2(9),
+	MGR NUMBER(4),
+	HIREDATE DATE,
+	SAL NUMBER(7, 2),
+	COMM NUMBER(7, 2),
+	DEPTNO NUMBER(2) CONSTRAINT empfk2_deptno_fk REFERENCES dept_fk(deptno) ON DELETE CASCADE
+);
+
+INSERT INTO emp_FK2 VALUES(1000, 'HONG', 'CLERK', 7788, sysdate, 1200, NULL, 50);
+-- 부모가 제거되면서 자식도 제거됨
+DELETE FROM dept_FK WHERE deptno = 50;
+
+DROP TABLE emp_fk2;
+
+CREATE TABLE emp_fk3(
+	EMPNO NUMBER(4) CONSTRAINT empfk3_empno_pk PRIMARY KEY,
+	ENAME VARCHAR2(10),
+	JOB VARCHAR2(9),
+	MGR NUMBER(4),
+	HIREDATE DATE,
+	SAL NUMBER(7, 2),
+	COMM NUMBER(7, 2),
+	DEPTNO NUMBER(2) CONSTRAINT empfk3_deptno_fk REFERENCES dept_fk(deptno) ON DELETE SET NULL
+);
+
+INSERT INTO dept_fk VALUES(50, 'DATABASE', 'SEOUL');
+INSERT INTO emp_FK3 VALUES(1000, 'HONG', 'CLERK', 7788, sysdate, 1200, NULL, 50);
+
+DELETE FROM dept_FK WHERE deptno = 50;
+SELECT * FROM emp_fk3;
+
+-- 5) CHECK : 열에 저장할 수 있는 값의 범위 혹은 패턴 정의
+
+CREATE TABLE TBL_CHECK(
+	LOGIN_ID VARCHAR(20) PRIMARY KEY, 
+	LOGIN_PWD VARCHAR(20) CONSTRAINT tblck_pwd_ck CHECK (LENGTH(LOGIN_PWD) > 3), 
+	TEL VARCHAR(20) 
+);
+
+-- 체크 제약조건(SCOTT.TBLCK_PWD_CK)이 위배되었습니다
+INSERT INTO tbl_check
+VALUES ('TESTID1', '123', NULL);
+
+CREATE TABLE TBL_CHECK2(
+	LOGIN_ID VARCHAR(20) PRIMARY KEY, 
+	LOGIN_PWD VARCHAR(20) CONSTRAINT tblck2_pwd_ck CHECK (LENGTH(LOGIN_PWD) > 3), 
+	grade varchar2(10)CONSTRAINT tblck2_grade_ck CHECK (grade IN('silver', 'gold', 'vip')),
+	TEL VARCHAR(20) 
+);
+
+-- 체크 제약조건(SCOTT.TBLCK2_GRADE_CK)이 위배되었습니다 
+INSERT INTO tbl_check2 VALUES('TESTID1', '1234', 'DIAMOND', null);
+
+-- default : 특정 열에 값이 지정되지 않았을 때 기본값 주기
+
+CREATE TABLE TBL_default(
+	LOGIN_ID VARCHAR(20) PRIMARY KEY, 
+	LOGIN_PWD VARCHAR(20) DEFAULT '1234', 
+	TEL VARCHAR(20) 
+);
+
+INSERT INTO tbl_default
+VALUES ('TESTID', '4687', null);
+
+
+INSERT INTO tbl_default(LOGIN_ID, TEL)
+VALUES ('TESTID2', '010-1234-5678');
+
+SELECT * FROM tbl_default;
+
+
+CREATE TABLE company(
+	code number(4) CONSTRAINT COM_CODE_PK PRIMARY KEY,
+	name varchar(20) CONSTRAINT COM_NAME_PK NOT NULL,
+	tel varchar(20) CONSTRAINT COM_TEL_PK NOT NULL,
+	loc varchar(20) CONSTRAINT COM_LOC_PK NOT NULL,
+	people varchar(20) CONSTRAINT COM_PEOPLE_PK NOT NULL 
+);
+
+INSERT INTO company VALUES (10, 1000, '오리온', '대전', '홍길동');
+SELECT * FROM company;
+
+
+
+CREATE TABLE product(
+	pcode number(4) PRIMARY KEY,
+	code number(4) CONSTRAINT PRO_CODE_FK REFERENCES company(code) ,
+	pname varchar2(20) NOT NULL,
+	amount NUMBER NOT NULL,
+	price NUMBER NOT NULL,
+	SUPPLY_DATE DATE NOT NULL,
+	SUPPLY_AMOUNT NUMBER NOT NULL
+	);
+
+
+CREATE SEQUENCE product_seq;
+
+INSERT INTO product(pcode, code, pname, amount, price, SUPPLY_DATE, SUPPLY_AMOUNT)
+VALUES(product_seq.nextval, 10, '초코파이', 500, 5500, '2024-01-02', 500);
+
+SELECT * FROM PRODUCT;
+
+
+
+
+CREATE TABLE member(
+	userid varchar2(20) PRIMARY KEY,
+	passward varchar2(30) NOT NULL,
+	name varchar2(20) NOT NULL,
+	age number(3) check(age > 0),
+	job varchar2(15),
+	grade varchar2(10) DEFAULT 'SILVER' CHECK(grade IN ('SILVER', 'GOLD', 'VIP')),
+	point number(8) DEFAULT 0
+);
+
+INSERT INTO member(userid, passward, name)
+VALUES('kim123', 'kim123', '김지호');
+
+
+CREATE TABLE member_ORDER(
+	order_id number PRIMARY KEY,
+	userid varchar2(20) REFERENCES member(userid),
+	pcode NUMBER(4) REFERENCES product(pcode),
+	amount NUMBER NOT NULL,
+	ADDR varchar2(50) NOT NULL,
+	order_date DATE DEFAULT sysdate
+);
+
+SELECT * FROM member_order;
+
+CREATE SEQUENCE order_seq;
+
+INSERT INTO member_ORDER(order_id, userid, pcode, amount, ADDR)
+VALUES(order_seq.nextval, 'kim123', 7, 10, '서울시종로구');
+
+SELECT * FROM member_ORDER;
+
+CREATE TABLE BOARD (
+	BNO NUMBER PRIMARY KEY,
+	TITLE VARCHAR2(20) NOT NULL,
+	CONTENT VARCHAR2(2000) NOT NULL,
+	REG_DATE DATE DEFAULT SYSDATE
+);
+
+CREATE SEQUENCE BOARD_SEQ;
+
+INSERT INTO BOARD(BNO,TITLE, CONTENT)
+VALUES(BOARD_SEQ.NEXTVAL, 'INSERT', 'INSERT');
+
+SELECT * FROM board;
+
+-- 제약조건
+CREATE TABLE emp_fk2
+(
+	EMPNO NUMBER(4) CONSTRAINT empfk2_empno_pk PRIMARY KEY,
+	ENAME VARCHAR2(10),
+	JOB VARCHAR2(9),
+	MGR NUMBER(4),
+	HIREDATE DATE,
+	SAL NUMBER(7, 2),
+	COMM NUMBER(7, 2),
+	DEPTNO NUMBER(2),
+	CONSTRAINT EMPFK2_DEPTNO_FK FOREIGN KEY(DEPTNO) REFERENCES DEPT_FK(DEPTNO)
+);
+
